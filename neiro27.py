@@ -11,22 +11,23 @@ from telegram.ext import (
     ContextTypes,
 )
 
+# Используем асинхронный клиент для стабильной версии mistralai==0.4.2
 from mistralai.async_client import MistralAsyncClient
 
-# Загружаем .env
+# Загружаем переменные окружения из .env (для локальных тестов)
 load_dotenv()
 
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY")
 
-# Порт Render
+# Порт для Render
 PORT = int(os.environ.get("PORT", 10000))
 
-# Mistral клиент
-client = Mistral(api_key=MISTRAL_API_KEY)
+# Инициализируем клиент Mistral для старой версии SDK
+client = MistralAsyncClient(api_key=MISTRAL_API_KEY)
 
-# Flask для Render
-web = Flask(__name__)
+# Flask-сервер для поддержки активности на Render
+web = Flask(name)
 
 @web.route("/")
 def home():
@@ -36,7 +37,7 @@ def run_web():
     web.run(host="0.0.0.0", port=PORT)
 
 
-# Команда /start
+# Обработчик команды /start
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(
         "👋 Привет!\n\n"
@@ -45,7 +46,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 
-# Команда /ask
+# Обработчик команды /ask
 async def ask(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not context.args:
         await update.message.reply_text(
@@ -57,8 +58,9 @@ async def ask(update: Update, context: ContextTypes.DEFAULT_TYPE):
     question = " ".join(context.args)
 
     try:
-        response = client.chat.complete(
-            model="mistral-small-latest",
+        # Асинхронный вызов в старой версии SDK (mistral-small вместо mistral-small-latest)
+        response = await client.chat(
+            model="mistral-small",
             messages=[
                 {
                     "role": "user",
@@ -69,6 +71,7 @@ async def ask(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
         answer = response.choices[0].message.content
 
+        # Отправка ответа с разбивкой по лимиту Telegram (4096 символов)
         if len(answer) <= 4096:
             await update.message.reply_text(answer)
         else:
@@ -80,19 +83,20 @@ async def ask(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 
 def main():
-    # Запускаем Flask
+    # Запуск веб-сервера Flask в отдельном потоке
     threading.Thread(target=run_web, daemon=True).start()
 
-    # Telegram бот
+    # Инициализация и настройка Telegram бота
     application = Application.builder().token(BOT_TOKEN).build()
 
     application.add_handler(CommandHandler("start", start))
     application.add_handler(CommandHandler("ask", ask))
 
-    print("Бот запущен!")
+    print("Бот успешно запущен!")
 
+    # Запуск бесконечного цикла опроса обновлений Telegram
     application.run_polling()
 
 
-if __name__ == "__main__":
+if name == "main":
     main()
