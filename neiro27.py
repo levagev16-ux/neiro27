@@ -11,9 +11,7 @@ from telegram.ext import (
     ContextTypes,
 )
 
-from mistralai import Mistral
-
-client = Mistral(api_key=MISTRAL_API_KEY)
+from mistralai.async_client import MistralAsyncClient
 
 # Загружаем .env
 load_dotenv()
