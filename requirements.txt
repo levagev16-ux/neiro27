@@ -1,5 +1,5 @@
 python-telegram-bot==22.2
-mistralai>=1.0.0
+mistralai==0.4.2
 python-dotenv
 Flask
 gunicorn
