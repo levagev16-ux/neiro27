@@ -13,6 +13,8 @@ from telegram.ext import (
 
 from mistralai import Mistral
 
+client = Mistral(api_key=MISTRAL_API_KEY)
+
 # Загружаем .env
 load_dotenv()
 
