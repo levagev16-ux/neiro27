@@ -27,7 +27,7 @@ PORT = int(os.environ.get("PORT", 10000))
 client = MistralAsyncClient(api_key=MISTRAL_API_KEY)
 
 # Flask-сервер для поддержки активности на Render
-web = Flask(name)
+web = Flask(__name__)
 
 @web.route("/")
 def home():
@@ -98,5 +98,5 @@ def main():
     application.run_polling()
 
 
-if name == "main":
+if __name__ == "__main__":
     main()
